@@ -1,0 +1,39 @@
+# [SECURITY FLAG - from source, do not commit as-is] InfluxDB credentials
+# are hardcoded below. Move to env vars / Docker secrets before pushing.
+version: '3.8'
+services:
+  simulation-engine:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: atomic_compute_engine
+    depends_on:
+      - telemetry-db
+    networks:
+      - compute-network
+  telemetry-db:
+    image: influxdb:2.7-alpine
+    container_name: atomic_compute_db
+    ports:
+      - "8086:8086"
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=ComputeEnginePassword2026!
+      - DOCKER_INFLUXDB_INIT_ORG=atomic_compute_org
+      - DOCKER_INFLUXDB_INIT_BUCKET=thermal_metrics
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=compute_engine_secret_token
+    networks:
+      - compute-network
+  visualization-dash:
+    image: grafana/grafana-oss:10.2.3
+    container_name: atomic_compute_dashboard
+    ports:
+      - "3000:3000"
+    depends_on:
+      - telemetry-db
+    networks:
+      - compute-network
+networks:
+  compute-network:
+    driver: bridge
