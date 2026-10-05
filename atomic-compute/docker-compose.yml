@@ -1,5 +1,10 @@
-# [SECURITY FLAG - from source, do not commit as-is] InfluxDB credentials
-# are hardcoded below. Move to env vars / Docker secrets before pushing.
+# v1.0.1 - reconstructed 2026-10-05 from the audit-repair doc.
+# [REPAIRED] Secrets decoupled from the orchestration layer: InfluxDB and
+# Grafana credentials now come from environment variables, replacing the
+# hardcoded values in v1.0. Provide them via a local .env file (not committed)
+# or your shell environment:
+#   INFLUX_ADMIN_USER, INFLUX_ADMIN_PASSWORD, INFLUX_ORG_NAME,
+#   INFLUX_BUCKET_NAME, INFLUX_SECRET_TOKEN, GRAFANA_SECRET_PASSWORD
 version: '3.8'
 services:
   simulation-engine:
@@ -7,6 +12,11 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: atomic_compute_engine
+    environment:
+      - INFLUXDB_URL=http://telemetry-db:8086
+      - INFLUXDB_TOKEN=${INFLUX_SECRET_TOKEN}
+      - INFLUXDB_ORG=${INFLUX_ORG_NAME}
+      - INFLUXDB_BUCKET=${INFLUX_BUCKET_NAME}
     depends_on:
       - telemetry-db
     networks:
@@ -18,22 +28,34 @@ services:
       - "8086:8086"
     environment:
       - DOCKER_INFLUXDB_INIT_MODE=setup
-      - DOCKER_INFLUXDB_INIT_USERNAME=admin
-      - DOCKER_INFLUXDB_INIT_PASSWORD=ComputeEnginePassword2026!
-      - DOCKER_INFLUXDB_INIT_ORG=atomic_compute_org
-      - DOCKER_INFLUXDB_INIT_BUCKET=thermal_metrics
-      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=compute_engine_secret_token
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUX_ADMIN_USER}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUX_ADMIN_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUX_ORG_NAME}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUX_BUCKET_NAME}
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUX_SECRET_TOKEN}
+    volumes:
+      - influxdb-storage:/var/lib/influxdb2
     networks:
       - compute-network
+    restart: unless-stopped
   visualization-dash:
     image: grafana/grafana-oss:10.2.3
     container_name: atomic_compute_dashboard
     ports:
       - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_SECRET_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-storage:/var/lib/grafana
     depends_on:
       - telemetry-db
     networks:
       - compute-network
+    restart: unless-stopped
 networks:
   compute-network:
     driver: bridge
+volumes:
+  influxdb-storage:
+  grafana-storage:

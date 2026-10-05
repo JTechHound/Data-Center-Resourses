@@ -1,19 +1,15 @@
-"""Micro-benchmark harness - reconstructed 2026-10-05 from the consolidated
-structure doc.
+"""v1.0.1 micro-benchmark harness - reconstructed 2026-10-05 from the
+audit-repair doc.
 
-[REPAIRED] One dropped operator in PDF extraction: "friction_total_time =
-end_time start_time" -> "end_time - start_time" (page line-break artifact;
-the convection twin line above it shows the intended form).
-
-NOTE: exits non-zero when a budget is missed - the Dockerfile runs this at
-build time, so a slow build host fails the docker build. datetime.utcnow()
-is deprecated in Python 3.12 (Dockerfile pins 3.11, fine).
+[REPAIRED] PDF extraction damage only. Source change vs v1.0: timestamp
+uses timezone-aware datetime.now(timezone.utc) instead of deprecated
+datetime.utcnow().
 """
 import time
 import sys
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from thermal_solver import DataCenterThermalSolver
 
 
@@ -46,7 +42,8 @@ def run_performance_benchmarks():
 
     log_file = "benchmark_history.json"
     new_entry = {
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        # Timezone-aware UTC - suppresses the 3.12 utcnow() deprecation
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "metrics": {
             "convection_ms": round(convection_avg_time_ms, 6),
             "friction_ms": round(friction_avg_time_ms, 6),

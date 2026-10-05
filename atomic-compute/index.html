@@ -3,26 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Atomic Compute Performance Tracker</title>
+<title>Atomic Compute Performance Analytics Dashboard</title>
 <style>
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f6f8fa; margin: 0; padding: 40px; color: #24292f; }
-.container { max-width: 900px; margin: 0 auto; background: #ffffff; border: 1px solid #d0d7de; border-radius: 6px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-h1 { border-bottom: 1px solid #d0d7de; padding-bottom: 12px; margin-top: 0; color: #0969da; }
-.meta { color: #57606a; font-size: 14px; margin-bottom: 24px; }
-.chart-box { text-align: center; margin: 32px 0; padding: 16px; border: 1px dashed #d0d7de; background: #fafafa; border-radius: 6px; }
-img { max-width: 100%; height: auto; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-.badge { background: #2da44e; color: white; padding: 4px 8px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; }
+body { font-family: -apple-system, system-ui, sans-serif; background: #f6f8fa; margin: 0; padding: 40px; }
+.container { max-width: 850px; margin: 0 auto; background: #ffffff; border: 1px solid #d0d7de; border-radius: 6px; padding: 32px; }
+h1 { color: #0969da; margin-top: 0; border-bottom: 1px solid #d0d7de; padding-bottom: 8px; }
+.chart-box { text-align: center; margin: 24px 0; padding: 16px; background: #fafafa; border: 1px solid #d0d7de; border-radius: 6px; }
+img { max-width: 100%; height: auto; }
+.badge-container { margin: 16px 0; }
 </style>
 </head>
 <body>
 <div class="container">
-<h1>Atomic Compute Physics Engine Analytics Center</h1>
-<p class="meta">Automated Regression Status Tracker &bull; Integrated CI/CD Telemetry Pipeline</p>
-<div>Status: <span class="badge">SYSTEM PASSING</span></div>
+<h1>Atomic Compute Processing Center Analytics Portal</h1>
+<p>Continuous Integration (CI/CD) Telemetry Trace Interface</p>
+<div class="badge-container">
+<!-- Dynamic status badge: reads benchmark_history.json at page load instead
+     of the old hardcoded "SYSTEM PASSING" layer. -->
+Build Verification Engine Status: <span id="runtime-status-badge" style="background:#57606a; color:#fff; padding:3px 8px; font-weight:bold; border-radius:12px; font-size:12px;">EVALUATING</span>
+</div>
 <div class="chart-box">
-<h3>Headless Micro-Benchmark Execution Analysis</h3>
-<img src="benchmark_trends.png" alt="Atomic Compute Performance Regression Trends Timeline Chart">
+<h3>Calculus Execution Speeds Profile History Timeline</h3>
+<img src="benchmark_trends.png" alt="Atomic Compute Performance Regression Trends Timeline Chart" onerror="this.style.display='none';">
 </div>
 </div>
+<script>
+// Reads the compiled metrics array to set badge state at page load.
+fetch('benchmark_history.json')
+  .then(response => response.json())
+  .then(data => {
+    const latestRun = data[data.length - 1];
+    const badge = document.getElementById('runtime-status-badge');
+    if (latestRun && latestRun.passed === true) {
+      badge.textContent = "SYSTEM PASSING";
+      badge.style.background = "#2da44e";
+    } else {
+      badge.textContent = "PIPELINE REGRESSION";
+      badge.style.background = "#cf222e";
+    }
+  })
+  .catch(() => {
+    document.getElementById('runtime-status-badge').textContent = "DATA EXPUNGED";
+  });
+</script>
 </body>
 </html>

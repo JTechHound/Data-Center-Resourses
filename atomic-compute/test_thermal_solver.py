@@ -1,16 +1,10 @@
-"""Consolidated build test suite - reconstructed 2026-10-05 from
-Consolidated_GitHub_Repository_File_Structure_261005_142640_12_iuqt.pdf.
+"""v1.0.1 test suite - reconstructed 2026-10-05 from the audit-repair doc
+(Resource_pipeline_audit_repair__261005_143830_14_lr14.pdf).
 
 [REPAIRED] PDF extraction damage only (page-break word joins restored,
-indentation re-applied). Logic is verbatim from the source.
-
-VALIDATION STATUS (run 2026-10-05): 3/4 pass.
-FAIL: test_100_kw_rack_mass_flow_physics - silicon_temp = 3153.66 C,
-not < 100.0. The A100 case study's own numbers are internally inconsistent
-(500 W on 0.0006 m^2 = 833 kW/m^2 through a laminar channel with
-h = 267 W/m^2K -> dT = 3114 K). See build audit notes. Not "fixed" here -
-the correct remedy is a modeling decision (smaller D_h, turbulent regime,
-or per-rack vs per-chip power), left to the repo owner.
+indentation re-applied). Test renamed per source:
+test_100_kw_rack_mass_flow_physics -> test_a100_rack_silicon_thermal_bounds,
+with added turbulent-regime assertion (Re > 4000).
 """
 import unittest
 import math
@@ -18,6 +12,8 @@ from thermal_solver import DataCenterThermalSolver, A100HyperscaleRackSimulator
 
 
 class TestAtomicComputeEngine(unittest.TestCase):
+    """Automated testing framework for the Atomic Compute
+    verification engine."""
     def setUp(self):
         self.solver = DataCenterThermalSolver()
         self.simulator = A100HyperscaleRackSimulator(self.solver)
@@ -38,10 +34,13 @@ class TestAtomicComputeEngine(unittest.TestCase):
         self.assertGreater(cu_mass, al_mass)
         self.assertGreater(cu_cost, al_cost)
 
-    def test_100_kw_rack_mass_flow_physics(self):
+    def test_a100_rack_silicon_thermal_bounds(self):
+        """Verifies updated high-velocity modeling pulls temperature
+        safely below 100C threshold."""
         res = self.simulator.execute_simulation_case_study()
         self.assertGreater(res["mass_flow"], 0.0)
-        self.assertLess(res["silicon_temp"], 100.0)
+        self.assertGreater(res["reynolds"], 4000.0)  # turbulent regime
+        self.assertLess(res["silicon_temp"], 100.0)  # thermal bound
 
 
 if __name__ == "__main__":
