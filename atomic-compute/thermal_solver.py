@@ -6,16 +6,17 @@ with a channel-manifold model by Lotus, approved by LJ 2026-10-05.
 [REPAIRED] PDF extraction damage only (page-break word joins restored,
 indentation re-applied). No logic invented.
 
-[UPGRADED] A100HyperscaleRackSimulator channel model (LJ-approved 2026-10-05):
-140 parallel microchannels, 0.5mm x 5.0mm (D_h = 0.909mm).
-Verified 2026-10-05: v = 16.23 m/s, Re = 5903 (turbulent), Nu = 97.8,
-h = 13,987 W/m^2K, silicon = 99.58C (< 100C test bound),
-loop dP = 2.72 MPa over 0.5m routing, pump = 15.5 kW.
-Supersedes: (a) the 32-channel / 71 m/s layout (pumping ~520 kW, unbuildable);
-(b) the rejected strategic-fixes 8000-channel layout, whose code computed
+[UPGRADED] A100HyperscaleRackSimulator channel model (LJ-approved 2026-10-05,
+120-channel variant selected 2026-10-05 for thermal headroom):
+120 parallel microchannels, 0.5mm x 5.0mm (D_h = 0.909mm).
+Verified 2026-10-05: v = 18.94 m/s, Re = 6887 (turbulent), Nu = 111.6,
+h = 15,823 W/m^2K, silicon = 92.67C (< 100C test bound, 7.3C margin),
+loop dP = 3.63 MPa over 0.5m routing, pump = 30.5 kW electrical
+(20.6 kW hydraulic), PUE = 1.355.
+Supersedes: (a) the 140-channel variant (Si 99.58C, 0.4C margin - too thin);
+(b) the 32-channel / 71 m/s layout (pumping ~520 kW, unbuildable);
+(c) the rejected strategic-fixes 8000-channel layout, whose code computed
 Re=258 laminar / T=677C and whose prose numbers contradicted each other.
-NOTE: 99.58C passes with 0.4C margin - 120 channels would give 92.7C
-at 20.6 kW pumping if more headroom is wanted (LJ's call).
 """
 import math
 
@@ -46,7 +47,7 @@ class A100HyperscaleRackSimulator:
     """Runs a concrete numerical case study on a 100 kW AI
     server rack utilizing fluid physics equations.
 
-    [UPGRADED 2026-10-05, LJ-approved] Channel manifold: 140 parallel
+    [UPGRADED 2026-10-05, LJ-approved] Channel manifold: 120 parallel
     microchannels (0.5mm x 5.0mm, D_h = 0.909mm). See module docstring
     for verified operating point.
     """
@@ -64,8 +65,8 @@ class A100HyperscaleRackSimulator:
         w_ch, h_ch = 0.0005, 0.0050
         area_ch = w_ch * h_ch
         d_h_channel = self.solver.calculate_hydraulic_diameter(w_ch, h_ch)
-        # Flow split across 140 parallel microchannel paths
-        num_channels_total = 140.0
+        # Flow split across 120 parallel microchannel paths
+        num_channels_total = 120.0
         velocity_in_channel = ((volumetric_flow_rate / num_channels_total)
                                / area_ch)
         nu, re, pr = self.solver.calculate_forced_convection_nusselt(
