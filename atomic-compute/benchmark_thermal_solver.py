@@ -10,11 +10,13 @@ import sys
 import json
 import os
 from datetime import datetime, timezone
-from thermal_solver import DataCenterThermalSolver
+from thermal_solver import DataCenterThermalSolver, PARAMS
 
 
 def run_performance_benchmarks():
     solver = DataCenterThermalSolver()
+    # [UPGRADED 2026-10-05] Budgets read from global_params.json.
+    budgets = PARAMS["benchmark_budgets_ms"]
     iterations = 50000
     # Benchmark 1: Convection Math
     start_time = time.perf_counter()
@@ -35,8 +37,8 @@ def run_performance_benchmarks():
     friction_total_time = end_time - start_time
     friction_avg_time_ms = (friction_total_time / iterations) * 1000
 
-    CONVECTION_BUDGET_MS = 0.015
-    FRICTION_BUDGET_MS = 0.050
+    CONVECTION_BUDGET_MS = budgets["convection"]
+    FRICTION_BUDGET_MS = budgets["friction"]
     convection_pass = convection_avg_time_ms <= CONVECTION_BUDGET_MS
     friction_pass = friction_avg_time_ms <= FRICTION_BUDGET_MS
 

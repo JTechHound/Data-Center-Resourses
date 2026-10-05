@@ -8,7 +8,10 @@ with added turbulent-regime assertion (Re > 4000).
 """
 import unittest
 import math
-from thermal_solver import DataCenterThermalSolver, A100HyperscaleRackSimulator
+from thermal_solver import DataCenterThermalSolver, A100HyperscaleRackSimulator, PARAMS
+
+# [UPGRADED 2026-10-05] Test bounds read from global_params.json (single source).
+BOUNDS = PARAMS["test_bounds"]
 
 
 class TestAtomicComputeEngine(unittest.TestCase):
@@ -39,8 +42,10 @@ class TestAtomicComputeEngine(unittest.TestCase):
         safely below 100C threshold."""
         res = self.simulator.execute_simulation_case_study()
         self.assertGreater(res["mass_flow"], 0.0)
-        self.assertGreater(res["reynolds"], 4000.0)  # turbulent regime
-        self.assertLess(res["silicon_temp"], 100.0)  # thermal bound
+        self.assertGreater(res["reynolds"],
+                           BOUNDS["reynolds_min_turbulent"])  # turbulent regime
+        self.assertLess(res["silicon_temp"],
+                        BOUNDS["silicon_temp_max_c"])  # thermal bound
 
 
 if __name__ == "__main__":
